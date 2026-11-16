@@ -1,66 +1,82 @@
-Uptime, IdleTime and Idle percentage___________________DONE
-Command : cat proc/uptime______________________________
-
-memory information____________________________________
-Command : cat /proc/meminfo___________________________DONE
-* Swap memory info____________________________________
-* RAM memory info_____________________________________
-
-system information
-command : uname
-options : -s -r -v ect.
-
-       -a, --all
-              print  all  information,  in the following order, except omit -p and -i if
-              unknown:
-
-       -s, --kernel-name
-              print the kernel name
-
-       -n, --nodename
-              print the network node hostname
-
-       -r, --kernel-release
-              print the kernel release
-
-       -v, --kernel-version
-              print the kernel version
-
-       -m, --machine
-              print the machine hardware name
-
-       -p, --processor
-              print the processor type (non-portable)
-
-       -i, --hardware-platform
-              print the hardware platform (non-portable)
-
-       -o, --operating-system
-              print the operating system
-
-       --help display this help and exit
-
-       --version
-              output version information and exit
+TOP PROGRAM - FEATURES
+======================
+Legend:  DONE = implemented in top_simple.c     TODO = not implemented yet
 
 
-power and battery commands/files
-Command : cat /sys/class/power_supply/ACAD/uevent________________________________________________
-To get power plugged on or off_______________________________________________________DONE________
+1. UPTIME, IDLE TIME AND IDLE PERCENTAGE ______________________________ DONE
+   Command : cat /proc/uptime
+   Shows   : uptime as hh:mm:ss
+             idle % = (idle_time / num_cores) / uptime * 100
+   Colour  : green (> 80%), white (> 20%), red (otherwise)
 
 
-Command : cat sys/class/power_supply/BAT1/status (alternative to above)________________________________
-Command : cat /sys/class/power_supply/BAT1/capacity (to get battery percentage)________________________________
-Command : cat /sys/class/power_supply/BAT1/capacity_level (to get battery level)________________________________
-Command : cat /sys/class/power_supply/BAT1/uevent (to get all details)________________________________
+2. MEMORY INFORMATION _________________________________________________ DONE
+   Command : cat /proc/meminfo
+   * RAM  used / total (GB)   ->  MemTotal - MemAvailable
+   * Swap used / total (GB)   ->  SwapTotal - SwapFree
 
 
-CPU usage (core wise)
-Command : cat /proc/loadavg
-Command : cat /proc/stat (better as it gives core wise usage) 
-Output : CPU usage in the last minute, last five minutes, and last 10 minutes, as well as the number of currently running processes.
-
-Zombie Proccesses
-For example, if you want to hunt for zombie processes, you could scan all numbered directories and check whether “(Z) Zombie” appears in the /status file
+3. NUMBER OF CORES ____________________________________________________ DONE
+   Command : cat /proc/cpuinfo   (the "siblings" line)
+   Fallback: sysconf(_SC_NPROCESSORS_ONLN)
 
 
+4. CPU USAGE (AVERAGE + CORE WISE) ____________________________________ DONE
+   Command : cat /proc/stat   (better than /proc/loadavg, gives core wise usage)
+   Shows   : vertical bar + percentage for AVG and for every core
+             (top-right corner, busiest core is drawn in red)
+
+
+5. POWER AND BATTERY __________________________________________________ DONE
+   Command : cat /sys/class/power_supply/BAT1/status          (charging / discharging)
+   Command : cat /sys/class/power_supply/BAT1/capacity        (battery percentage)
+   Command : cat /sys/class/power_supply/BAT1/capacity_level  (battery level)
+   Shows   : status - percentage (level)
+             blinking red when below 20% and discharging
+
+   * Command : cat /sys/class/power_supply/ACAD/uevent
+     (power plugged on or off)                                           TODO
+   * Command : cat /sys/class/power_supply/BAT1/uevent
+     (all battery details)                                               TODO
+
+
+6. PROCESS LIST _______________________________________________________ DONE
+   Source  : every numbered folder in /proc
+   Files   : /proc/<pid>/stat       -> name, state, priority, nice, cpu %, running time
+             /proc/<pid>/status     -> VmSize (virtual), VmRSS (resident)
+             /proc/<pid>/loginuid   -> user id (name looked up with getpwuid)
+   Columns : PID, USER, PRI, NI, VIR(mb), RES(mb), STATE, CPU%, TIME+, PROGRAM
+   Note    : processes without VmSize/VmRSS (kernel threads, zombies) are hidden
+
+
+7. SYSTEM INFORMATION _________________________________________________ TODO
+   Command : uname
+   Options : -a  all information
+             -s  kernel name
+             -n  node (host) name
+             -r  kernel release
+             -v  kernel version
+             -m  machine hardware name
+             -p  processor type (non-portable)
+             -i  hardware platform (non-portable)
+             -o  operating system
+   (In C this can be done with uname() from <sys/utsname.h>)
+
+
+8. LOAD AVERAGE _______________________________________________________ TODO
+   Command : cat /proc/loadavg
+   Output  : load in the last 1, 5 and 15 minutes and the number of
+             currently running processes
+
+
+9. ZOMBIE PROCESSES ___________________________________________________ TODO
+   Idea    : scan all numbered folders in /proc and check whether
+             "Z (zombie)" appears in the State line of /proc/<pid>/status
+   Note    : the STATE column already shows Z, but zombies are hidden at the
+             moment (see note in section 6), so they need a separate count/list
+
+
+OTHER IDEAS ___________________________________________________________ TODO
+   * hide the cursor while running (printf("\33[?25l")) and restore it on exit
+   * sort the process list (by CPU / memory)
+   * process count (total / running / sleeping / zombie)

@@ -1,4 +1,9 @@
+#!/bin/bash
 
-# while sleep 0.5; do clear; ./a.out; done
-resize -s 22 100
-while [ 1 ]; do gcc C:\Users\ARNAB GHOSH\mytop; ./a.out && break; done
+cd "/mnt/c/Users/ARNAB GHOSH/mytop" || exit 1
+
+gcc top_simple.c -o mytop
+
+if [ $? -eq 0 ]; then
+    ./mytop
+fi break; done
