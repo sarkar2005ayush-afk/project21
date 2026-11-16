@@ -64,4 +64,3 @@ Zombie Proccesses
 For example, if you want to hunt for zombie processes, you could scan all numbered directories and check whether “(Z) Zombie” appears in the /status file
 
 
-System Name : tejas@nimbostratus
